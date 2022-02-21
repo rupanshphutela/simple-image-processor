@@ -1,0 +1,304 @@
+<html xmlns:th="https://www.thymeleaf.org">
+<head>
+    <title>Upload Image Page</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container">
+    <h1>Choose a picture to Upload</h1>
+    <p class="text-danger" th:if="${errorMessage}" th:text="${errorMessage}"></p>
+    <p class="text-success" th:if="${successMessage}" th:text="${successMessage}"></p>
+    <form method="POST" enctype="multipart/form-data" action="/uploadImage" >
+  	<div>
+    	<input type="file" id="image" name="image" accept=".jpg, .jpeg, .png" multiple value="Choose Image" required/>
+  	</div>
+  	<div class="preview">
+    	<p>No files currently selected for upload</p>
+  	</div>
+  	<div class="flip">
+	  	<p><strong>Flip</strong></p>
+	  	<input type="checkbox" id="flipHorizontal" name="flipHorizontal">
+	  	<label for="flipHorizontal">Horizontal</label>
+		<input type="checkbox" id="flipVertical" name="flipVertical">
+		<label for="flipVertical">Vertical</label>
+		</div> 
+  	<div class="rotatedegrees">
+	  	<p><strong>Rotate N &deg; to Right</strong></p>
+	  	<input type="number" min="0" step="1" id="rotateDegrees" name="rotateDegrees">
+	  	<label for="rotateDegrees">&deg;</label>
+	</div> 
+	<div class="grayScale">
+	  	<p><strong>Grayscale</strong></p>
+	  	<input type="checkbox" id="grayScale" name="grayScale">
+	  	<label for="grayScale">Yes</label>
+	</div>
+	<div class="Resize">
+	  	<p><strong>Resize</strong></p>
+	  	<input type="checkbox" id="usingAspectRatio" name="usingAspectRatio">
+	  	<label for="usingAspectRatio">Maintain Aspect Ratio</label>
+	  	<input type="number" min="1" max="250" step="1" id="resize" name="resize">
+	  	<label for="resize">&#37;</label>
+	  	<p></p>
+	  	<input type="checkbox" id="usingDimensions" name="usingDimensions">
+	  	<label for="usingDimensions">Using Dimensions</label>
+	  	<input type="number" step="1" id="imgheight" name="imgheight">
+	  	<label for="imgheight">px</label>
+	  	<input type="number" step="1" id="imgwidth" name="imgwidth">
+	  	<label for="imgwidth">px</label>
+	  	<!-- <p></p>
+	  	<button id="button" type="button" value="send" class="btn btn-primary" onclick="clearDimensionRadios()">Clear</button> -->
+	  	
+	</div>
+	<div class="Thumbnail">
+	  	<p><strong>Thumbnail</strong></p>
+	  	<input type="checkbox" id="thumbnail" name="thumbnail">
+	  	<label for="thumbnail">Yes</label>
+	</div>
+	<div class="Rotate">
+	  	<p><strong>Rotate</strong></p>
+	  	<input type="radio" id="rotateRight" name="rotateRight">
+	  	<label for="rotateRight">Right</label>
+		<input type="radio" id="rotateLeft" name="rotateLeft">
+		<label for="rotateLeft">Left</label>
+		<button id="button" type="button" value="send" class="btn btn-primary" onclick="clearRotateRadios()">Clear</button>
+	</div>
+  	<div>
+  		<input type="hidden" id="base64Image" name="base64Image">
+    	<button type="submit" class="btn btn-primary" >Upload</button>
+  	</div>
+  	<script>  	
+  	function readFile() {
+  	  
+  	  if (this.files && this.files[0]) {
+  	    
+  	    var FR= new FileReader();
+  	    
+  	    FR.addEventListener("load", function(e) {
+  	      document.getElementById("uploadedImage").src       = e.target.result;
+  	      document.getElementById("base64Image").value = e.target.result;
+  	    }); 
+  	    
+  	    FR.readAsDataURL( this.files[0] );
+  	  }
+  	  
+  	}
+
+  	document.getElementById("image").addEventListener("change", readFile);
+	  	
+	  	
+	  	const input = document.querySelector('input');
+	  	const preview = document.querySelector('.preview');
+	  	
+	  	input.addEventListener('change', updateImageDisplay);
+	
+	  	function updateImageDisplay() {
+	  	  while(preview.firstChild) {
+	  	    preview.removeChild(preview.firstChild);
+	  	  }
+	
+	  	  const curFiles = input.files;
+	  	  if(curFiles.length === 0) {
+	  	    const para = document.createElement('p');
+	  	    para.textContent = 'No files currently selected for upload';
+	  	    preview.appendChild(para);
+	  	  } else {
+	  	    const list = document.createElement('ol');
+	  	    preview.appendChild(list);
+	  	  	list.style="list-style: none;"
+	
+	  	    for(const file of curFiles) {
+	  	      const listItem = document.createElement('li');
+	  	      const para = document.createElement('p');
+	  	      if(validFileType(file)) {
+	  	        para.textContent = `Image filename ${file.name}, Image filesize ${returnFileSize(file.size)} .`;
+	  	        const image = document.createElement('img');
+ 	        	 //Populate image dimensions in resize box
+	  	        image.onload = function(){
+	  	     //   	if(this.height < 200) document.getElementById('thumbnail').disabled = true;
+	  	        	const imageHeight=this.height;
+	  	        	const imageWidth=this.width;
+	  	        };
+	  	        image.src = URL.createObjectURL(file);
+				image.width = "400";
+				image.id = "uploadedImage";
+	  	        listItem.appendChild(image);
+	  	        listItem.appendChild(para);
+	  	      } else {
+	  	        para.textContent = `File name ${file.name}: Not a valid file type. Update your selection.`;
+	  	        listItem.appendChild(para);
+	  	      }
+	
+	  	      list.appendChild(listItem);
+	  	    }
+	  	  }
+	  	}
+
+	  	const fileTypes = [
+	  	  "image/apng",
+	  	  "image/bmp",
+	  	  "image/gif",
+	  	  "image/jpeg",
+	  	  "image/pjpeg",
+	  	  "image/png",
+	  	  "image/svg+xml",
+	  	  "image/tiff",
+	  	  "image/webp",
+	  	  "image/x-icon"
+	  	];
+	
+	  	function validFileType(file) {
+	  	  return fileTypes.includes(file.type);
+	  	}
+	  	
+	  	function returnFileSize(number) {
+	  	  if(number < 1024) {
+	  	    return number + 'bytes';
+	  	  } else if(number >= 1024 && number < 1048576) {
+	  	    return (number/1024).toFixed(1) + 'KB';
+	  	  } else if(number >= 1048576) {
+	  	    return (number/1048576).toFixed(1) + 'MB';
+	  	  }
+	  	};
+	  	
+	  	//Select one rotate radio button
+	  	document.getElementById('rotateRight').onclick = function() {
+	  	    document.getElementById('rotateLeft').checked = false;
+	  	};
+	  	document.getElementById('rotateLeft').onclick = function() {
+	  	    document.getElementById('rotateRight').checked = false;
+	  	};
+	  //Select one resize radio button
+	  	document.getElementById('usingAspectRatio').onclick = function() {
+	  	    document.getElementById('usingDimensions').checked = false;
+	  	};
+	  	document.getElementById('usingDimensions').onclick = function() {
+	  	    document.getElementById('usingAspectRatio').checked = false;
+	  	};
+	  	
+	  	//Clear Dimension Radios
+	  	function clearDimensionRadios() {
+			var radList = document.getElementsByName('usingAspectRatio');
+	  	      if(radList[0].checked) document.getElementById(radList[0].id).checked = false;
+	  		var radList2 = document.getElementsByName('usingDimensions');
+	  	      if(radList2[0].checked) document.getElementById(radList2[0].id).checked = false;
+	  			document.getElementById('resize').disabled = false;
+	  			document.getElementById('imgheight').disabled = false;
+	  			document.getElementById('imgwidth').disabled = false;
+
+	  	  };
+	  	//Clear Rotate Radios
+	  	function clearRotateRadios() {
+			var radList = document.getElementsByName('rotateRight');
+	  	      if(radList[0].checked) document.getElementById(radList[0].id).checked = false;
+	  		var radList2 = document.getElementsByName('rotateLeft');
+	  	      if(radList2[0].checked) document.getElementById(radList2[0].id).checked = false;
+	  			document.getElementById('rotateDegrees').disabled = false;
+	  	  };
+	  	//Disable resize on selecting Thumbnail
+	  	document.getElementById('thumbnail').onchange = function() {
+	  		document.getElementById('resize').value = "";
+	  	    document.getElementById('resize').disabled = this.checked;
+	  	    document.getElementById('imgheight').disabled = this.checked;
+	  	    document.getElementById('imgwidth').disabled = this.checked;
+	  	    document.getElementById('usingAspectRatio').checked = false;
+	  	    document.getElementById('usingDimensions').checked = false;
+	  	  	document.getElementById('usingAspectRatio').disabled = this.checked;
+	  	    document.getElementById('usingDimensions').disabled = this.checked;
+	  	};
+	  	
+	  //Disable aspect ratio on selecting dimension
+	  	document.getElementById('usingDimensions').onchange = function() {
+	  		document.getElementById('resize').value = "";
+	  	    document.getElementById('resize').disabled = this.checked;
+	  	  	document.getElementById('imgheight').disabled = !this.checked;
+	  	    document.getElementById('imgwidth').disabled = !this.checked;
+	  	};
+	  	
+	  //Disable dimension on selecting aspect ratio 
+	  	document.getElementById('usingAspectRatio').onchange = function() {
+	  	    document.getElementById('imgheight').disabled = this.checked;
+	  	    document.getElementById('imgwidth').disabled = this.checked;
+	  		document.getElementById('imgheight').value = "";
+	  		document.getElementById('imgwidth').value = "";
+	  	    document.getElementById('resize').disabled = !this.checked;
+	  	};
+	  	
+	  	//Disable rotate N degrees on selecting Rotate Right
+	  	document.getElementById('rotateRight').onchange = function() {
+	  		document.getElementById('rotateDegrees').value = "";
+	  	    document.getElementById('rotateDegrees').disabled = this.checked;
+	  	};
+	  //Disable rotate N degrees on selecting Rotate Left
+	  	document.getElementById('rotateLeft').onchange = function() {
+	  		document.getElementById('rotateDegrees').value = "";
+	  	    document.getElementById('rotateDegrees').disabled = this.checked;
+	  	};
+		</script>
+		</form>
+	</div>
+	</body>
+	</html>
+	
+	<!-- JS way 		<form method="get">
+			<input type="hidden" id="image" name="postId">
+			<button id="button" type="button" value="send" class="btn btn-primary" onclick="rotate90Right()">Rotate Right</button>
+		</form>
+		</form>
+		<form method="get">
+			<input type="hidden" id="image" name="postId">
+			<button id="button" type="button" value="send" class="btn btn-primary" onclick="rotate90Left()">Rotate Left</button>
+		</form>
+		<form method="get">
+			<input type="hidden" id="image" name="postId">
+			<button id="button" type="button" value="send" class="btn btn-primary" onclick="flipHorizontal()">Flip Horizontal</button>
+		</form> 
+		<form method="get">
+			<input type="hidden" id="image" name="postId">
+			<button id="button" type="button" value="send" class="btn btn-primary" onclick="flipVertical()">Flip Vertical</button>
+		</form>
+		<form method="get">
+			<input type="hidden" id="image" name="postId">
+			<button id="button" type="button" value="send" class="btn btn-primary" onclick="flipHorVert()">Flip Horizontal-Vertical</button>
+		</form>
+		<form method="get">
+			<input type="hidden" id="image" name="postId">
+			<button id="button" type="button" value="send" class="btn btn-primary" onclick="grayScale()">GrayScale</button>
+			<canvas id="can"></canvas> 
+		<script>
+			function rotate90Right() {
+			document.querySelector("#uploadedImage").style.transform = "rotate(90deg)";
+			}
+		
+		function rotate90Left() {
+			document.querySelector("#uploadedImage").style.transform = "rotate(270deg)";
+			}
+	  	  	
+		function flipHorizontal(){
+			document.querySelector("#uploadedImage").style.transform='scaleX(-1)';
+			}
+	  	  	
+		function flipVertical(){
+			document.querySelector("#uploadedImage").style.transform='scaleY(-1)';
+			}
+		
+		function flipHorVert(){
+			document.querySelector("#uploadedImage").style.transform='scale(-1,-1)';
+			}
+	  	  	
+		function grayScale() {
+			var fileinput = document.getElementById("image");
+			//Make new SimpleImage from file input
+			image = new SimpleImage(fileinput);
+			//change all pixels of image to gray
+			for (var pixel of image.values()) {
+				var avg = (pixel.getRed()+pixel.getGreen()+pixel.getBlue())/3;
+				pixel.setRed(avg);
+				pixel.setGreen(avg);
+				pixel.setBlue(avg);
+				}
+		  	  //display new image
+			var canvas = document.getElementById("canvas");
+			image.drawTo(canvas);
+			}
+		</script>
+	</form> -->
