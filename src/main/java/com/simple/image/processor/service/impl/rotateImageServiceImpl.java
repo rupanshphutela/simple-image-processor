@@ -14,28 +14,7 @@ import com.simple.image.processor.service.rotateImageService;
 public class rotateImageServiceImpl implements rotateImageService {
 
     private Logger logger = LoggerFactory.getLogger(FileUploadServiceImpl.class);
-/*    
-    public BufferedImage ndegrees(BufferedImage imageFile, int rotateDegrees) {
-	rotateDegrees = rotateDegrees%360;
-	try {
-		
-	if(rotateDegrees == 0) {
-	     return imageFile ;
-	}
-	else {
-		javaxt.io.Image image2 = new javaxt.io.Image(imageFile);
-		image2.rotate(rotateDegrees);
-		java.awt.image.BufferedImage image = image2.getBufferedImage();
-		System.out.println("Dimensions of javaxt rotated image - Height: " + image.getHeight() + ", Width: "+ image.getWidth());
-		return image;
-	}
-}
-	catch (Exception e) {
-		logger.error(e.getMessage(), e);
-		return null;
-	}
-}
-*/   		
+	
     @SuppressWarnings("removal")
 	public BufferedImage ndegrees(BufferedImage imageFile, String rotateDegrees) {
     	try {
@@ -59,7 +38,17 @@ public class rotateImageServiceImpl implements rotateImageService {
             		image = Scalr.rotate(imageFile, rotation);
                     imageFile.flush();
                     return image;
+    			case -180:
+            		rotation = Scalr.Rotation.CW_180;
+            		image = Scalr.rotate(imageFile, rotation);
+                    imageFile.flush();
+                    return image;
     			case 270:
+            		rotation = Scalr.Rotation.CW_270;
+            		image = Scalr.rotate(imageFile, rotation);
+                    imageFile.flush();
+                    return image;
+    			case -90:
             		rotation = Scalr.Rotation.CW_270;
             		image = Scalr.rotate(imageFile, rotation);
                     imageFile.flush();
