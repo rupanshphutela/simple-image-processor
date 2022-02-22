@@ -1,5 +1,6 @@
 package com.simple.image.processor.controller;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -11,7 +12,10 @@ import javax.imageio.ImageIO;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -20,11 +24,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.view.RedirectView;
 
-
-import com.simple.image.processor.message.ResponseMessage;
-import com.simple.image.processor.service.FileUploadService;
-import com.simple.image.processor.service.base64ToImageService;
+//import com.simple.image.processor.message.ResponseMessage;
+//import com.simple.image.processor.service.FileUploadService;
+//import com.simple.image.processor.service.base64ToImageService;
 import com.simple.image.processor.service.flipImage;
 import com.simple.image.processor.service.grayscaleImageService;
 import com.simple.image.processor.service.resizeImageService;
@@ -35,8 +39,6 @@ import com.simple.image.processor.service.impl.fetchAttributes;
 public class SimpleImageProcessorController {
 	String message="";
     @Autowired
-    private base64ToImageService base64ToImageService;
-    @Autowired
     private flipImage flipImage;
     @Autowired
     private grayscaleImageService grayscaleImageService;
@@ -44,8 +46,8 @@ public class SimpleImageProcessorController {
     private resizeImageService resizeImageService;
     @Autowired
     private rotateImageService rotateImageService;
-    @Autowired
-    private FileUploadService fileUploadService;
+//  private FileUploadService fileUploadService;
+//  private base64ToImageService base64ToImageService;
 
     @Value("${image.folder}")
     private String imageFolder;
@@ -55,8 +57,8 @@ public class SimpleImageProcessorController {
         return "uploadImage";
     }
 
-    @PostMapping("/uploadImage")
-    public ResponseEntity<ResponseMessage> uploadImage(@RequestParam("image") MultipartFile imageFile,fetchAttributes operations, RedirectAttributes redirectAttributes) throws IOException {
+	@PostMapping("/uploadImage")
+    public ResponseEntity<byte[]> uploadImage(@RequestParam("image") MultipartFile imageFile,fetchAttributes operations, RedirectAttributes attributes) {
         
       //Variables from HTML Form
         System.out.println("Form to Controller inputs via DTO");
@@ -69,9 +71,9 @@ public class SimpleImageProcessorController {
         String grayscale = operations.getGrayScale();
         System.out.println("GrayScale=====>  " + grayscale);
         String imgheight = operations.getImgheight();
-        System.out.println("Resize=====>  " + imgheight);
+        System.out.println("imgHeight=====>  " + imgheight);
         String imgwidth = operations.getImgwidth();
-        System.out.println("Resize=====>  " + imgwidth);
+        System.out.println("imgWidth=====>  " + imgwidth);
         String resize = operations.getResize();
         System.out.println("Resize=====>  " + resize);
         String thumbnail = operations.getThumbnail();
@@ -80,9 +82,9 @@ public class SimpleImageProcessorController {
         System.out.println("RotateRight=====>  " + rotateRight);
         String rotateLeft = operations.getRotateLeft();
         System.out.println("RotateLeft=====>  " + rotateLeft);
-        String base64Image = operations.getBase64Image();
+   /*     String base64Image = operations.getBase64Image();
         System.out.println("Base64Image size=====>  " + base64Image.length());
-        
+     */   
       //Building response template fields
         Map<String, Object> result = new HashMap<String,Object>();
         result.put("FlipHorizontal",flipHorizontal);
@@ -100,46 +102,98 @@ public class SimpleImageProcessorController {
         if(imageFile.isEmpty()) {
         	message = "Please choose file to upload.";
             result.put("message",message);
-            redirectAttributes.addFlashAttribute("errorMessage", message);
-            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new ResponseMessage(result));
+            HttpHeaders headers = new HttpHeaders();
+//            headers.add("Location", "redirect:/");
+            attributes.addFlashAttribute("message", message);
+            return new ResponseEntity<byte []>(null,headers,HttpStatus.EXPECTATION_FAILED);//ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new ResponseMessage(result));
         }
         
         if(!(imageFile.isEmpty()) && flipHorizontal==null && flipVertical==null && rotateDegrees=="0" && resize=="100" && grayscale==null && thumbnail==null && rotateRight==null && rotateLeft==null) {
         	message = "Both rotate operations are not permitted at same time. ";
             result.put("message",message);
-            redirectAttributes.addFlashAttribute("errorMessage", message);
-            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new ResponseMessage(result));
-        }
+            HttpHeaders headers = new HttpHeaders();
+//            headers.add("Location", "redirect:/");
+            attributes.addFlashAttribute("message", message);
+            return new ResponseEntity<byte []>(null,headers,HttpStatus.EXPECTATION_FAILED);
+            }
         
-        if(((!(thumbnail==null)&&!thumbnail.isEmpty()))&&(((!(resize==null)&&!resize.isEmpty()))&&(((!(imgwidth==null)&&!imgwidth.isEmpty()))||((!(imgheight==null)&&!imgheight.isEmpty()))))) {
+        if(((!(thumbnail==null)&&!thumbnail.isEmpty()))&&(((!(resize==null)&&!resize.isEmpty())))) {
         	message = "Both resize operations are not permitted at same time. ";
             result.put("message",message);
-            redirectAttributes.addFlashAttribute("errorMessage", message);
-            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new ResponseMessage(result));
-        }
+            HttpHeaders headers = new HttpHeaders();
+//            headers.add("Location", "redirect:/");
+            attributes.addFlashAttribute("message", message);
+            return new ResponseEntity<byte []>(null,headers,HttpStatus.EXPECTATION_FAILED);
+            }
         
-        if(!(imageFile.isEmpty()) && flipHorizontal==null && flipVertical==null && rotateDegrees=="" && resize=="" && imgwidth=="" && imgheight=="" && grayscale==null && thumbnail==null && rotateRight==null && rotateLeft==null) {
+        if(((!(imgwidth==null)&&!imgwidth.isEmpty()))&&((((imgheight==null)||imgheight.isEmpty())))) {
+        	message = "Please enter both height and width. ";
+            result.put("message",message);
+            HttpHeaders headers = new HttpHeaders();
+//            headers.add("Location", "redirect:/");
+            attributes.addFlashAttribute("message", message);
+            return new ResponseEntity<byte []>(null,headers,HttpStatus.EXPECTATION_FAILED);
+            }
+        
+        if(((!(imgheight==null)&&!imgheight.isEmpty()))&&((((imgwidth==null)||imgwidth.isEmpty())))) {
+        	message = "Please enter both height and width. ";
+            result.put("message",message);
+            HttpHeaders headers = new HttpHeaders();
+//            headers.add("Location", "redirect:/");
+            attributes.addFlashAttribute("message", message);
+            return new ResponseEntity<byte []>(null,headers,HttpStatus.EXPECTATION_FAILED);
+            }
+        
+        if(((!(thumbnail==null)&&!thumbnail.isEmpty()))&&((((!(imgwidth==null)&&!imgwidth.isEmpty()))||(!(imgheight==null)&&!imgheight.isEmpty())))) {
+        	message = "Both resize operations are not permitted at same time. ";
+            result.put("message",message);
+            HttpHeaders headers = new HttpHeaders();
+//            headers.add("Location", "redirect:/");
+            attributes.addFlashAttribute("message", message);
+            return new ResponseEntity<byte []>(null,headers,HttpStatus.EXPECTATION_FAILED);
+            }
+        
+        if(((!(resize==null)&&!resize.isEmpty()))&&((((!(imgwidth==null)&&!imgwidth.isEmpty()))||(!(imgheight==null)&&!imgheight.isEmpty())))) {
+        	message = "Both resize operations are not permitted at same time. ";
+            result.put("message",message);
+            HttpHeaders headers = new HttpHeaders();
+//            headers.add("Location", "redirect:/");
+            attributes.addFlashAttribute("message", message);
+            return new ResponseEntity<byte []>(null,headers,HttpStatus.EXPECTATION_FAILED);
+            }
+        
+        if(!(imageFile.isEmpty()) && flipHorizontal==null && flipVertical==null && ((rotateDegrees==null)||rotateDegrees.isBlank()) && ((resize==null)||resize.isBlank()) && ((imgwidth==null)||imgwidth.isBlank()) && ((imgheight==null)||imgheight.isBlank()) && grayscale==null && thumbnail==null && rotateRight==null && rotateLeft==null) {
         	message = "No changes made to the image. Can't proceed. ";
             result.put("message",message);
-            redirectAttributes.addFlashAttribute("errorMessage", message);
-            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new ResponseMessage(result));
-        }
-        
+            HttpHeaders headers = new HttpHeaders();
+//            headers.add("Location", "redirect:/");
+            attributes.addFlashAttribute("message", message);
+            return new ResponseEntity<byte []>(null,headers,HttpStatus.EXPECTATION_FAILED);}
+    /*    
         //Base64 to Buffered Image
         System.out.println("Converting to image from base64");
         BufferedImage image = base64ToImageService.transform(base64Image);
         int width          = image.getWidth();
 		int height         = image.getHeight();
         System.out.println("Updated image dimensions after read :"+width+"x"+height);
-        
+   */     
         //MultipartFile to BufferedImage conversion
-        MultipartFile multipartFile = Objects.requireNonNull(imageFile);
-        File tempFile = Files.createTempFile("image_upload_", ".tmp").toFile();
-        multipartFile.transferTo(tempFile);
-        BufferedImage InputImage = ImageIO.read(tempFile);
-        width          = image.getWidth();
-		height         = image.getHeight();
-        System.out.println("Updated image dimensions after read :"+width+"x"+height);
+        BufferedImage InputImage = null;
+        int width          = 0;
+        int height         = 0;
+		try {
+			MultipartFile multipartFile = Objects.requireNonNull(imageFile);
+	        File tempFile;
+			tempFile = Files.createTempFile("image_upload_", ".tmp").toFile();
+			multipartFile.transferTo(tempFile);
+	        InputImage = ImageIO.read(tempFile);
+	        width          = InputImage.getWidth();
+	        height         = InputImage.getHeight();
+	        System.out.println("Updated image dimensions after read :"+width+"x"+height);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         
         //Flip function
         System.out.println("Running flip methods on Image");
@@ -190,28 +244,35 @@ public class SimpleImageProcessorController {
 		height         = imageRotLeft.getHeight();
         System.out.println("Updated image dimensions after rotate left :"+width+"x"+height);
                 
-        //Save edited File
+/*        //Save edited File
         System.out.println("Running save method on Image");
         File file = fileUploadService.upload(imageRotLeft);
         if(file == null) {
         	message = "No File : " + imageFile.getOriginalFilename();
             result.put("message",message);
-            redirectAttributes.addFlashAttribute("errorMessage", message);   
-            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new ResponseMessage(result));
+            return null;//ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new ResponseMessage(result));
 
         }
-        //Building Success Response
-        message = "Uploaded the file successfully - " + imageFile.getOriginalFilename();
+*/      //Building Success Response
+        message = "Transformed the file successfully - " + imageFile.getOriginalFilename();
         result.put("message",message);
         result.put("Http Status",HttpStatus.OK);
-    /*
+         
+        HttpHeaders headers = new HttpHeaders();
+        headers.setCacheControl(CacheControl.noCache().getHeaderValue());
+        headers.setContentType(MediaType.IMAGE_JPEG);
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        ImageIO.write(imageRotLeft , "jpg", byteArrayOutputStream);
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        byte[] imageInByte = baos.toByteArray();
-*/
-        redirectAttributes.addFlashAttribute("successMessage", message);
-        return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(result));
+        try {
+			ImageIO.write(imageRotLeft , "jpg", byteArrayOutputStream);
+			System.out.println("File written to outputstream");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        byte[] media = byteArrayOutputStream.toByteArray();
+        
+        ResponseEntity<byte[]> responseEntity = new ResponseEntity<>(media, headers, HttpStatus.OK);
+        return responseEntity;
 
     }
 
