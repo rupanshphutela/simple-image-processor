@@ -114,13 +114,13 @@
 	  	      if(validFileType(file)) {
 	  	        para.textContent = `Image filename ${file.name}, Image filesize ${returnFileSize(file.size)} .`;
 	  	        const image = document.createElement('img');
+ 	        	image.src = URL.createObjectURL(file);
  	        	 //Populate image dimensions in resize box
 	  	        image.onload = function(){
 	  	     //   	if(this.height < 200) document.getElementById('thumbnail').disabled = true;
 	  	        	const imageHeight=this.height;
 	  	        	const imageWidth=this.width;
 	  	        };
-	  	        image.src = URL.createObjectURL(file);
 				image.width = "400";
 				image.id = "uploadedImage";
 	  	        listItem.appendChild(image);
