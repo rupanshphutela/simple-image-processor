@@ -37,14 +37,14 @@
 	  	<p><strong>Resize</strong></p>
 	  	<input type="checkbox" id="usingAspectRatio" name="usingAspectRatio">
 	  	<label for="usingAspectRatio">Maintain Aspect Ratio</label>
-	  	<input type="number" min="1" max="250" step="1" id="resize" name="resize" disabled>
+	  	<input type="number" min="1" max="250" step="1" id="resize" name="resize" disabled required>
 	  	<label for="resize">&#37;</label>
 	  	<p></p>
 	  	<input type="checkbox" id="usingDimensions" name="usingDimensions">
 	  	<label for="usingDimensions">Using Dimensions</label>
-	  	<input type="number" min="1" step="1" id="imgheight" name="imgheight" disabled>
+	  	<input type="number" min="1" step="1" id="imgheight" name="imgheight" disabled required>
 	  	<label for="imgheight">px</label>
-	  	<input type="number" min="1" step="1" id="imgwidth" name="imgwidth" disabled>
+	  	<input type="number" min="1" step="1" id="imgwidth" name="imgwidth" disabled required>
 	  	<label for="imgwidth">px</label>
 	  	<!-- <p></p>
 	  	<button id="button" type="button" value="send" class="btn btn-primary" onclick="clearDimensionRadios()">Clear</button> -->
@@ -169,7 +169,7 @@
 	  	document.getElementById('rotateLeft').onclick = function() {
 	  	    document.getElementById('rotateRight').checked = false;
 	  	};
-	  //Select one resize radio button
+	  //Select one resize checkbox button
 	  	document.getElementById('usingAspectRatio').onclick = function() {
 	  	    document.getElementById('usingDimensions').checked = false;
 	  	};
@@ -216,6 +216,8 @@
 	  	document.getElementById('usingDimensions').onchange = function() {
 	  		document.getElementById('resize').value = "";
 	  	    document.getElementById('resize').disabled = true;
+	  	  	document.getElementById('imgheight').value = "";
+	  		document.getElementById('imgwidth').value = "";
 	  	  	document.getElementById('imgheight').disabled = !this.checked;
 	  	    document.getElementById('imgwidth').disabled = !this.checked;
 	  	};
@@ -226,6 +228,7 @@
 	  	    document.getElementById('imgwidth').disabled = true;
 	  		document.getElementById('imgheight').value = "";
 	  		document.getElementById('imgwidth').value = "";
+	  		document.getElementById('resize').value = "";
 	  	    document.getElementById('resize').disabled = !this.checked;
 	  	};
 	  	
