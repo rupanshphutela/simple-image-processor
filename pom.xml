@@ -68,6 +68,11 @@
      		<artifactId>javaxt-core</artifactId>
      		<version>1.11.0</version>
    		</dependency>
+		<dependency>
+      		<groupId>org.springdoc</groupId>
+      		<artifactId>springdoc-openapi-ui</artifactId>
+      		<version>1.6.6</version>
+   		</dependency>
 	</dependencies>
 	<repositories>
    		<repository>

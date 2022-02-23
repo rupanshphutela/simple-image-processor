@@ -10,6 +10,7 @@ import java.util.Objects;
 
 import javax.imageio.ImageIO;
 
+import org.springdoc.core.SpringDocUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.CacheControl;
@@ -22,10 +23,13 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
+import com.simple.image.processor.SimpleImageProcessorApplication;
 //import com.simple.image.processor.message.ResponseMessage;
 //import com.simple.image.processor.service.FileUploadService;
 //import com.simple.image.processor.service.base64ToImageService;
@@ -49,9 +53,13 @@ public class SimpleImageProcessorController {
 //  private FileUploadService fileUploadService;
 //  private base64ToImageService base64ToImageService;
 
-    @Value("${image.folder}")
-    private String imageFolder;
-
+//    @Value("${image.folder}")
+//    private String imageFolder;
+    
+    static {
+        SpringDocUtils.getConfig().addRestControllers(SimpleImageProcessorController.class);
+    }
+    
     @GetMapping("")
     public String uploadImage() {
         return "uploadImage";
