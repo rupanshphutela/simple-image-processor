@@ -66,10 +66,11 @@ public class SimpleImageProcessorController {
     }
 
 	@PostMapping("/uploadImage")
-    public ResponseEntity<byte[]> uploadImage(@RequestParam("image") MultipartFile imageFile,fetchAttributes operations, RedirectAttributes attributes) {
+    public ResponseEntity<byte[]> uploadImage(fetchAttributes operations, RedirectAttributes attributes) {
         
       //Variables from HTML Form
-        System.out.println("Form to Controller inputs via DTO");
+        MultipartFile imageFile = operations.getImage();        
+    	System.out.println("Form to Controller inputs via DTO");
         String flipHorizontal = operations.getFlipHorizontal();
         System.out.println("FlipHorizontal=====>  " + flipHorizontal);
         String flipVertical = operations.getFlipVertical();
@@ -90,6 +91,7 @@ public class SimpleImageProcessorController {
         System.out.println("RotateRight=====>  " + rotateRight);
         String rotateLeft = operations.getRotateLeft();
         System.out.println("RotateLeft=====>  " + rotateLeft);
+
    /*     String base64Image = operations.getBase64Image();
         System.out.println("Base64Image size=====>  " + base64Image.length());
      */   

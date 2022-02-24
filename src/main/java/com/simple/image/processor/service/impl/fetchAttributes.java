@@ -2,13 +2,16 @@ package com.simple.image.processor.service.impl;
 
 import java.io.Serializable;
 
+import org.springframework.web.multipart.MultipartFile;
+
 //DTO Object
 public class fetchAttributes implements Serializable{
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 8686834337329208533L;
-	public String flipHorizontal;
+    public MultipartFile image;
+    public String flipHorizontal;
     public String flipVertical;
     public String rotateDegrees;
     public String grayScale;
@@ -20,7 +23,13 @@ public class fetchAttributes implements Serializable{
     public String rotateLeft;
 //    public String base64Image;
 	
-    public String getFlipHorizontal() {
+    public MultipartFile getImage() {
+		return image;
+	}
+	public void setImage(MultipartFile image) {
+		this.image = image;
+	}
+	public String getFlipHorizontal() {
 		return flipHorizontal;
 	}
 	public void setFlipHorizontal(String flipHorizontal) {
