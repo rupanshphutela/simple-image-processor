@@ -13,6 +13,7 @@ import javax.imageio.ImageIO;
 import org.springdoc.core.SpringDocUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -23,9 +24,12 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
@@ -60,16 +64,23 @@ public class SimpleImageProcessorController {
         SpringDocUtils.getConfig().addRestControllers(SimpleImageProcessorController.class);
     }
     
+    @Bean
+    public MultipartResolver multipartResolver() {
+        org.springframework.web.multipart.commons.CommonsMultipartResolver multipartResolver = new org.springframework.web.multipart.commons.CommonsMultipartResolver();
+        multipartResolver.setMaxUploadSize(1000000);
+        return multipartResolver;
+    }
+    
     @GetMapping("")
     public String uploadImage() {
         return "uploadImage";
     }
 
-	@PostMapping("/uploadImage")
-    public ResponseEntity<byte[]> uploadImage(fetchAttributes operations, RedirectAttributes attributes) {
+	@PostMapping(value ="/uploadImage", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<byte[]> uploadImage(@RequestParam("image") MultipartFile imageFile, fetchAttributes operations, RedirectAttributes attributes) {
         
       //Variables from HTML Form
-        MultipartFile imageFile = operations.getImage();        
+//        MultipartFile imageFile = operations.getImage();        
     	System.out.println("Form to Controller inputs via DTO");
         String flipHorizontal = operations.getFlipHorizontal();
         System.out.println("FlipHorizontal=====>  " + flipHorizontal);
