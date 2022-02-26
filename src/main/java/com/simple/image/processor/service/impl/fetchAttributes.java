@@ -10,7 +10,7 @@ public class fetchAttributes implements Serializable{
 	 * 
 	 */
 	private static final long serialVersionUID = 8686834337329208533L;
-    public MultipartFile image;
+//    public MultipartFile image;
     public String flipHorizontal;
     public String flipVertical;
     public String rotateDegrees;
@@ -23,12 +23,12 @@ public class fetchAttributes implements Serializable{
     public String rotateLeft;
 //    public String base64Image;
 	
-    public MultipartFile getImage() {
-		return image;
-	}
-	public void setImage(MultipartFile image) {
-		this.image = image;
-	}
+//    public MultipartFile getImage() {
+//		return image;
+//	}
+//	public void setImage(MultipartFile image) {
+//		this.image = image;
+//	}
 	public String getFlipHorizontal() {
 		return flipHorizontal;
 	}

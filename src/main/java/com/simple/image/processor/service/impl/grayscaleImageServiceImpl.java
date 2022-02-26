@@ -10,18 +10,22 @@ import org.springframework.stereotype.Service;
 import com.simple.image.processor.service.grayscaleImageService;
 @Service
 public class grayscaleImageServiceImpl implements grayscaleImageService{
-    private Logger logger = LoggerFactory.getLogger(FileUploadServiceImpl.class);
+    private Logger logger = LoggerFactory.getLogger(grayscaleImageServiceImpl.class);
 
-	public BufferedImage grayscale(BufferedImage imageFile, String grayscale) {
+	public BufferedImage grayscale(BufferedImage imageFile, String grayScale) {
 		try {
-			if(grayscale==null || grayscale.isEmpty()){
+			if(grayScale==null || grayScale.isEmpty()){
 				return imageFile;
 			}
-			else {
+			else if (grayScale.equals("on")){
 				ColorConvertOp color = Scalr.OP_GRAYSCALE;
 				BufferedImage image = Scalr.apply(imageFile, color);
+				imageFile.flush();
 				return image;
 				}
+			else {
+				throw new Exception();
+			}
 		}
 		catch (Exception e) {
             logger.error(e.getMessage(), e);

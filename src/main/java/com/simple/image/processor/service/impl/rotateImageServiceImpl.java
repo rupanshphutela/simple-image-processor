@@ -13,7 +13,7 @@ import com.simple.image.processor.service.rotateImageService;
 @Service
 public class rotateImageServiceImpl implements rotateImageService {
 
-    private Logger logger = LoggerFactory.getLogger(FileUploadServiceImpl.class);
+    private Logger logger = LoggerFactory.getLogger(rotateImageServiceImpl.class);
 	
     @SuppressWarnings("removal")
 	public BufferedImage ndegrees(BufferedImage imageFile, String rotateDegrees) {
@@ -79,12 +79,15 @@ public class rotateImageServiceImpl implements rotateImageService {
 			if(rotateLeft==null || rotateLeft.isEmpty()) {
 				return imageFile;
             }
-			else {
+			else if(rotateLeft.equals("on")){
 				Scalr.Rotation rotation = Scalr.Rotation.CW_270;
 	            BufferedImage image = Scalr.rotate(imageFile, rotation);
 	            imageFile.flush();
 	            return image;
 	    	}
+			else {
+				throw new Exception();
+			}
 		}
 		catch (Exception e) {
 			logger.error(e.getMessage(), e);
@@ -98,12 +101,15 @@ public class rotateImageServiceImpl implements rotateImageService {
 			if(rotateRight==null || rotateRight.isEmpty()) {
 				return imageFile;
             }
-			else {
+			else if(rotateRight.equals("on")){
 				Scalr.Rotation rotation = Scalr.Rotation.CW_90;
 	            BufferedImage image = Scalr.rotate(imageFile, rotation);
 	            imageFile.flush();
 	            return image;
 	    	}
+			else {
+				throw new Exception();
+			}
 		}
 		catch (Exception e) {
 			logger.error(e.getMessage(), e);

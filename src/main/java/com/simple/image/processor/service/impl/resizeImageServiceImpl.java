@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import com.simple.image.processor.service.resizeImageService;
 @Service
 public class resizeImageServiceImpl implements resizeImageService{
-    private Logger logger = LoggerFactory.getLogger(FileUploadServiceImpl.class);
+    private Logger logger = LoggerFactory.getLogger(resizeImageServiceImpl.class);
 
 	public BufferedImage resize(BufferedImage imageFile, String resize) {
 		BufferedImage image = imageFile;
@@ -63,7 +63,7 @@ public class resizeImageServiceImpl implements resizeImageService{
 			if(thumbnail==null || thumbnail.isEmpty()) {
         		return imageFile;
 			}
-			else {
+			else if(thumbnail.equals("on")){
 //				if(imageFile.getHeight()>200) {
 	        		System.out.println("Inside thumbnail on loop with > 200 height ");
 	        		Scalr.Mode mode = Scalr.Mode.FIT_TO_HEIGHT;
@@ -78,6 +78,9 @@ public class resizeImageServiceImpl implements resizeImageService{
 //	        		imageFile.flush();
 //					return image;
 //				}
+			}
+			else {
+				throw new Exception();
 			}
         }
 		catch (Exception e){

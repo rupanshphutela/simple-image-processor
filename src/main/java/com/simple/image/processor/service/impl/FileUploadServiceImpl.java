@@ -26,7 +26,8 @@ public class FileUploadServiceImpl implements fileUploadService {
         try {
         	/*            Path path = Paths.get(imageFolder, imageFile.getOriginalFilename());
             Files.write(path, imageFile.getBytes()); 
-            return outputfile.toFile();*/  	
+            return outputfile.toFile();*/ 
+
         	File outputfile = new File(imageFolder+"image.jpg");
         	ImageIO.write(imageFile, "jpg", outputfile);
             return outputfile;
