@@ -2,6 +2,11 @@ package com.simple.image.processor.controller;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.*;
+import io.swagger.v3.oas.annotations.media.*;
+
+
 import javax.imageio.ImageIO;
 
 import org.springdoc.core.SpringDocUtils;
@@ -60,8 +65,11 @@ public class SimpleImageProcessorController {
     }
 
 	@PostMapping(value ="/uploadImage", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	@ResponseBody
 //    public ResponseEntity<byte[]> uploadImage(@RequestParam(value="image",required=true) MultipartFile imageFile, fetchAttributes operations, RedirectAttributes attributes) {
+	@Operation(summary = "Get thing", responses = {
+		      @ApiResponse(description = "Successful Operation", responseCode = "200", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))),
+		      @ApiResponse(responseCode = "406", description = "Values not Acceptable ", content = @Content),
+		      @ApiResponse(responseCode = "412", description = "Pre-condition Failure", content = @Content(schema = @Schema(hidden = true))) })
     public ResponseEntity<byte[]> uploadImage(@RequestParam(value="image",required=true) MultipartFile imageFile, fetchAttributes operations) {
     
       //Variables from HTML Form
@@ -105,12 +113,12 @@ public class SimpleImageProcessorController {
         	throw new Exception();
     		}
         
-        if(((!(imgwidth==null)&&!imgwidth.isEmpty()))&&((((imgheight==null)||imgheight.isEmpty())))) {
+        if(((!(imgwidth==null)&&!imgwidth.isEmpty()))&&((imgheight==null)||imgheight.isEmpty())) {
         	message = "Image Height null/empty/non-numerical. Please enter both height and width. ";
         	throw new Exception();
     		}
         
-        if(((!(imgheight==null)&&!imgheight.isEmpty()))&&((((imgwidth==null)||imgwidth.isEmpty())))) {
+        if(((!(imgheight==null)&&!imgheight.isEmpty()))&&((imgwidth==null)||imgwidth.isEmpty())) {
         	message = "Image Width null/empty/non-numerical. Please enter both height and width. ";
         	throw new Exception();
     		}
@@ -134,7 +142,7 @@ public class SimpleImageProcessorController {
         	HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("Error Message",  message);
-            ResponseEntity<byte[]> responseEntity = new ResponseEntity<>(null, headers, HttpStatus.EXPECTATION_FAILED);
+            ResponseEntity<byte[]> responseEntity = new ResponseEntity<>(null, headers, HttpStatus.PRECONDITION_FAILED);
             return responseEntity;
             }
     /*    
@@ -257,7 +265,7 @@ public class SimpleImageProcessorController {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("Error Message",  message);
-            ResponseEntity<byte[]> responseEntity = new ResponseEntity<>(null, headers, HttpStatus.EXPECTATION_FAILED);
+            ResponseEntity<byte[]> responseEntity = new ResponseEntity<>(null, headers, HttpStatus.NOT_ACCEPTABLE);
             return responseEntity;
             }
     }
