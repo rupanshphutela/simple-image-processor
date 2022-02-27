@@ -1,0 +1,124 @@
+{
+  "openapi" : "3.0.1",
+  "info" : {
+    "title" : "Simple Image Processor",
+    "version" : "v0.1"
+  },
+  "servers" : [ {
+    "url" : "http://localhost:8080",
+    "description" : "Image Transformation"
+  } ],
+  "paths" : {
+    "/uploadImage" : {
+      "post" : {
+        "tags" : [ "simple-image-processor-controller" ],
+        "summary" : "Image Transformation Application",
+        "operationId" : "uploadImage",
+        "parameters" : [ {
+          "name" : "operations",
+          "in" : "query",
+          "required" : true,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "$ref" : "#/components/schemas/fetchAttributes"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/uploadImage_body"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Successful Operation",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "406" : {
+            "description" : "Values not Acceptable "
+          },
+          "412" : {
+            "description" : "Pre-condition Failure"
+          }
+        }
+      }
+    },
+    "/" : {
+      "get" : {
+        "tags" : [ "simple-image-processor-controller" ],
+        "operationId" : "uploadImage_1",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "fetchAttributes" : {
+        "type" : "object",
+        "properties" : {
+          "flipHorizontal" : {
+            "type" : "string"
+          },
+          "flipVertical" : {
+            "type" : "string"
+          },
+          "rotateDegrees" : {
+            "type" : "string"
+          },
+          "grayScale" : {
+            "type" : "string"
+          },
+          "resize" : {
+            "type" : "string"
+          },
+          "imgheight" : {
+            "type" : "string"
+          },
+          "imgwidth" : {
+            "type" : "string"
+          },
+          "thumbnail" : {
+            "type" : "string"
+          },
+          "rotateRight" : {
+            "type" : "string"
+          },
+          "rotateLeft" : {
+            "type" : "string"
+          }
+        }
+      },
+      "uploadImage_body" : {
+        "required" : [ "image" ],
+        "type" : "object",
+        "properties" : {
+          "image" : {
+            "type" : "string",
+            "format" : "binary"
+          }
+        }
+      }
+    }
+  }
+}
