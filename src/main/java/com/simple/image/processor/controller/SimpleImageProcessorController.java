@@ -66,9 +66,9 @@ public class SimpleImageProcessorController {
 
 	@PostMapping(value ="/uploadImage", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 //    public ResponseEntity<byte[]> uploadImage(@RequestParam(value="image",required=true) MultipartFile imageFile, fetchAttributes operations, RedirectAttributes attributes) {
-	@Operation(summary = "Get thing", responses = {
+	@Operation(summary = "Image Transformation Application", responses = {
 		      @ApiResponse(description = "Successful Operation", responseCode = "200", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))),
-		      @ApiResponse(responseCode = "406", description = "Values not Acceptable ", content = @Content),
+		      @ApiResponse(responseCode = "406", description = "Values not Acceptable", content = @Content),
 		      @ApiResponse(responseCode = "412", description = "Pre-condition Failure", content = @Content(schema = @Schema(hidden = true))) })
     public ResponseEntity<byte[]> uploadImage(@RequestParam(value="image",required=true) MultipartFile imageFile, fetchAttributes operations) {
     
