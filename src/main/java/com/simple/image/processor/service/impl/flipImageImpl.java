@@ -27,6 +27,7 @@ public class flipImageImpl implements flipImage{
 			}
 		}
 		catch (Exception e) {
+
             logger.error(e.getMessage(), e);
             return null;
             }

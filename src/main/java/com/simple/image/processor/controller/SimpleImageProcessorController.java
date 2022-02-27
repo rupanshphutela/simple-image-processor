@@ -1,15 +1,9 @@
 package com.simple.image.processor.controller;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.Objects;
 
 import javax.imageio.ImageIO;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springdoc.core.SpringDocUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -20,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -27,12 +22,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartResolver;
 
+import com.simple.image.processor.service.MultipartToBufferedImage;
 import com.simple.image.processor.service.flipImage;
 import com.simple.image.processor.service.grayscaleImageService;
 import com.simple.image.processor.service.resizeImageService;
 import com.simple.image.processor.service.rotateImageService;
 import com.simple.image.processor.service.impl.fetchAttributes;
-import com.simple.image.processor.service.impl.resizeImageServiceImpl;
 @Controller
 @CrossOrigin("http://localhost:8080")
 public class SimpleImageProcessorController {
@@ -45,9 +40,9 @@ public class SimpleImageProcessorController {
     private resizeImageService resizeImageService;
     @Autowired
     private rotateImageService rotateImageService;
+    @Autowired
+    private MultipartToBufferedImage MultipartToBufferedImage;
     
-    private Logger logger = LoggerFactory.getLogger(resizeImageServiceImpl.class);
-
     static {
         SpringDocUtils.getConfig().addRestControllers(SimpleImageProcessorController.class);
     }
@@ -150,147 +145,70 @@ public class SimpleImageProcessorController {
 		int height         = image.getHeight();
         System.out.println("Updated image dimensions after read :"+width+"x"+height);
    */     
-        //MultipartFile to BufferedImage conversion
-        BufferedImage InputImage = null;
         int width          = 0;
         int height         = 0;
-		try {
-			MultipartFile multipartFile = Objects.requireNonNull(imageFile);
-	        File tempFile;
-			tempFile = Files.createTempFile("image_upload_", ".tmp").toFile();
-			multipartFile.transferTo(tempFile);
-	        InputImage = ImageIO.read(tempFile);
-	        width          = InputImage.getWidth();
-	        height         = InputImage.getHeight();
-	        System.out.println("Updated image dimensions after read :"+width+"x"+height);
-		} catch (IOException e) {
-			logger.error(e.getMessage(), e);
-        	message = "Unable to convert MultipartFile to BufferedImage";
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Error Message",  message);
-            ResponseEntity<byte[]> responseEntity = new ResponseEntity<>(null, headers, HttpStatus.EXPECTATION_FAILED);
-            return responseEntity;
-            }
-		
-        //Flip function
-        BufferedImage imageFlipHor = null;
+		//Operation output variables
+        BufferedImage imageInput = null;
+		BufferedImage imageFlipHor = null;
         BufferedImage imageFlipVert = null;
-        try {
+        BufferedImage imageRotNDeg = null;
+        BufferedImage imageGrayscale = null;
+        BufferedImage imageResize = null;
+        BufferedImage imageResizeHW = null;
+        BufferedImage imageThumbnail = null;
+        BufferedImage imageRotRight = null;
+        BufferedImage imageRotLeft = null;
+		try {
+	        //MultipartFile to BufferedImage conversion
+			imageInput = MultipartToBufferedImage.convert(imageFile);
+	        width          = imageInput.getWidth();
+	        height         = imageInput.getHeight();
+	        System.out.println("Image dimensions after MultipartFile to BufferedImage conversion :"+width+"x"+height);
+		
+        	//Flip Function
         	System.out.println("Running flip methods on Image");
-        	imageFlipHor = flipImage.horizontal(InputImage, flipHorizontal);
+        	imageFlipHor = flipImage.horizontal(imageInput, flipHorizontal);
         	imageFlipVert = flipImage.vertical(imageFlipHor, flipVertical);
         	width          = imageFlipVert.getWidth();
         	height         = imageFlipVert.getHeight();
-        	System.out.println("Updated image dimensions after rotate n degrees :"+width+"x"+height);
-        }
-        //flipHorizontal/flipVertical restricted to null, empty and "on" values
-        catch(Exception e) {
-        	message = "Incorrect Data - Flip Operation accepts only \"on\",null  or \"\" as inputs";
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Error Message",  message);
-            ResponseEntity<byte[]> responseEntity = new ResponseEntity<>(null, headers, HttpStatus.EXPECTATION_FAILED);
-            return responseEntity;
-            }
-        
-        //Rotate Function
-        BufferedImage imageRotNDeg = null;
-        try {
+        	System.out.println("Updated image dimensions after flip method :"+width+"x"+height);
+
+        	//Rotate Function
         	System.out.println("Running rotate n degrees method on Image");
         	imageRotNDeg = rotateImageService.ndegrees(imageFlipVert, rotateDegrees);
         	width          = imageRotNDeg.getWidth();
         	height         = imageRotNDeg.getHeight();
         	System.out.println("Updated image dimensions after rotate n degrees :"+width+"x"+height);
-        }
-        catch(Exception e){
-        	message = "Incorrect Data - Rotate N degrees Operation accepts only integers as inputs";
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Error Message",  message);
-            ResponseEntity<byte[]> responseEntity = new ResponseEntity<>(null, headers, HttpStatus.EXPECTATION_FAILED);
-            return responseEntity;
-            }
 
-        //Grayscale Function
-        BufferedImage imageGrayscale = null;
-        try {
+        	//Grayscale Function
         	System.out.println("Running grayscale method on Image");
         	imageGrayscale = grayscaleImageService.grayscale(imageRotNDeg, grayScale);
         	width          = imageGrayscale.getWidth();
         	height         = imageGrayscale.getHeight();
         	System.out.println("Updated image dimensions after thumbnail :"+width+"x"+height);
-        }
-        //grayscale restricted to null, empty and "on" values
-        catch(Exception e) {
-        	message = "Incorrect Data - Grayscale Operation accepts only \"on\",null  or \"\" as inputs";
-        	HttpHeaders headers = new HttpHeaders();
-        	headers.setContentType(MediaType.APPLICATION_JSON);
-        	headers.set("Error Message",  message);
-        	ResponseEntity<byte[]> responseEntity = new ResponseEntity<>(null, headers, HttpStatus.EXPECTATION_FAILED);
-            return responseEntity;
-            }
-        
-    	//Resize Function using percentage
-        BufferedImage imageResize = null;
-        try {
+      
+        	//Resize Function using percentage
         	System.out.println("Running resize method on Image");
         	imageResize = resizeImageService.resize(imageGrayscale, resize);
         	width          = imageResize.getWidth();
         	height         = imageResize.getHeight();
-        	System.out.println("Updated image dimensions after resize :"+width+"x"+height);
-        }
-        //Resize by Aspect Ratio restricted to only integers
-        catch(Exception e) {
-        	message = "Incorrect Data - Resize by Aspect Ratio Operation accepts only integers as inputs";
-        	HttpHeaders headers = new HttpHeaders();
-        	headers.setContentType(MediaType.APPLICATION_JSON);
-        	headers.set("Error Message",  message);
-        	ResponseEntity<byte[]> responseEntity = new ResponseEntity<>(null, headers, HttpStatus.EXPECTATION_FAILED);
-            return responseEntity;
-            }
-        
-    	//Resize Function using Image height and width
-        BufferedImage imageResizeHW = null;
-        try {
+        	System.out.println("Updated image dimensions after resize by aspect ratio :"+width+"x"+height);
+   
+        	//Resize Function using Image height and width
         	System.out.println("Running resize method on Image");
         	imageResizeHW = resizeImageService.resizehw(imageResize, imgwidth, imgheight);
         	width          = imageResizeHW.getWidth();
         	height         = imageResizeHW.getHeight();
-        	System.out.println("Updated image dimensions after resize :"+width+"x"+height);
-        }
-        //Resize by height/width restricted to only integers 
-        catch(Exception e) {
-        	message = "Incorrect Data - Resize by height/width Operation accepts only integers as inputs";
-        	HttpHeaders headers = new HttpHeaders();
-        	headers.setContentType(MediaType.APPLICATION_JSON);
-        	headers.set("Error Message",  message);
-        	ResponseEntity<byte[]> responseEntity = new ResponseEntity<>(null, headers, HttpStatus.EXPECTATION_FAILED);
-            return responseEntity;
-        	}
-        
-        //Thumbnail 
-        BufferedImage imageThumbnail = null;
-        try {
+        	System.out.println("Updated image dimensions after resize by height/width :"+width+"x"+height);
+
+        	//Thumbnail 
         	System.out.println("Running thumbnail method on Image");
         	imageThumbnail = resizeImageService.thumbnail(imageResizeHW, thumbnail);
         	width          = imageThumbnail.getWidth();
         	height         = imageThumbnail.getHeight();
         	System.out.println("Updated image dimensions after thumbnail :"+width+"x"+height);
-        }
-        //thumbnail restricted to null, empty and "on" values
-        catch(Exception e) {
-        	message = "Incorrect Data - Thumbnail Operation accepts only \"on\",null  or \"\" as inputs";
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            ResponseEntity<byte[]> responseEntity = new ResponseEntity<>(null, headers, HttpStatus.EXPECTATION_FAILED);
-            return responseEntity;
-        }
-        
-    	//Rotate Left/Right Function
-        BufferedImage imageRotRight = null;
-        BufferedImage imageRotLeft = null;
-        try {
+   
+        	//Rotate Left/Right Function
         	System.out.println("Running rotate methods on Image");
         	imageRotRight = rotateImageService.rotateRight(imageThumbnail, rotateRight);
         	width          = imageRotRight.getWidth();
@@ -300,35 +218,48 @@ public class SimpleImageProcessorController {
         	width          = imageRotLeft.getWidth();
         	height         = imageRotLeft.getHeight();
         	System.out.println("Updated image dimensions after rotate left :"+width+"x"+height);
+        	
+        	//Building Success Response
+            HttpHeaders headers = new HttpHeaders();
+            headers.setCacheControl(CacheControl.noCache().getHeaderValue());
+            headers.setContentType(MediaType.IMAGE_JPEG);
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    		ImageIO.write(imageRotLeft , "jpg", byteArrayOutputStream);
+    		System.out.println("File written to outputstream");
+            message = "Transformed the file successfully - " + imageFile.getOriginalFilename();
+            headers.set("Success Message",  message);
+            byte[] media = byteArrayOutputStream.toByteArray();
+            ResponseEntity<byte[]> responseEntity = new ResponseEntity<>(media, headers, HttpStatus.OK);
+            return responseEntity;
         }
-        //rotateRight/rotateLeft restricted to null, empty and "on" values
         catch(Exception e) {
-        	message = "Incorrect Data - Rotate Left/Right Operation accepts only \"on\",null  or \"\" as inputs";
+			e.printStackTrace();
+			if(imageInput==null)
+				message = "File corrupt/not a .jpg image. Unable to convert MultipartFile to BufferedImage";
+			else if(imageFlipHor==null)         	
+        		message = "Incorrect Data - Flip Operation accepts only \"on\", null  or \"\" as inputs";
+        	else if(imageFlipVert==null) 
+        		message = "Incorrect Data - Flip Operation accepts only \"on\", null  or \"\" as inputs";
+        	else if(imageRotNDeg==null) 
+        		message="Incorrect Data - Rotate N degrees Operation accepts only integers as inputs";
+        	else if(imageGrayscale==null) 
+        		message="Incorrect Data - Grayscale Operation accepts only \"on\", null  or \"\" as inputs";
+        	else if(imageResize==null) 
+        		message="Incorrect Data - Resize by Aspect Ratio Operation accepts only integers as inputs";
+        	else if(imageResizeHW==null) 
+        		message="Incorrect Data - Resize by height/width Operation accepts only integers as inputs";
+        	else if(imageThumbnail==null) 
+        		message="Incorrect Data - Thumbnail Operation accepts only \"on\", null  or \"\" as inputs";
+        	else if(imageRotRight==null) 
+        		message="Incorrect Data - Rotate Left/Right Operation accepts only \"on\", null  or \"\" as inputs";
+        	else if(imageRotLeft==null) 
+        		message="Incorrect Data - Rotate Left/Right Operation accepts only \"on\", null  or \"\" as inputs";
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("Error Message",  message);
             ResponseEntity<byte[]> responseEntity = new ResponseEntity<>(null, headers, HttpStatus.EXPECTATION_FAILED);
             return responseEntity;
-        }
-                
-      //Building Success Response
-        try {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setCacheControl(CacheControl.noCache().getHeaderValue());
-        headers.setContentType(MediaType.IMAGE_JPEG);
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		ImageIO.write(imageRotLeft , "jpg", byteArrayOutputStream);
-		System.out.println("File written to outputstream");
-        message = "Transformed the file successfully - " + imageFile.getOriginalFilename();
-        headers.set("Success Message",  message);
-        byte[] media = byteArrayOutputStream.toByteArray();
-        ResponseEntity<byte[]> responseEntity = new ResponseEntity<>(media, headers, HttpStatus.OK);
-        return responseEntity;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
-		}
+            }
     }
 }
 
