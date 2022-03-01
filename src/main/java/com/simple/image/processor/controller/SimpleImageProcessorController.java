@@ -63,7 +63,7 @@ public class SimpleImageProcessorController {
     @Bean
     public MultipartResolver multipartResolver() {
         org.springframework.web.multipart.commons.CommonsMultipartResolver multipartResolver = new org.springframework.web.multipart.commons.CommonsMultipartResolver();
-        multipartResolver.setMaxUploadSize(1024*1024*10); //10MB
+  //      multipartResolver.setMaxUploadSize(1024*1024*10); //10MB
         return multipartResolver;
     }
     
