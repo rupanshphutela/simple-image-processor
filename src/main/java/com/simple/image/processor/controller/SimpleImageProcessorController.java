@@ -171,7 +171,7 @@ public class SimpleImageProcessorController {
         		}
     	}
     	catch(Exception e) {
-    		message = "Passed height/width resize parameter is eithe too large or not a number. Please pass integers <=5000 for each";
+    		message = "Passed height/width resize parameter is too large. Please pass integers <=5000 for each";
     		headers.set("Error Message",  message);
     		throw new Exception();
     	}
