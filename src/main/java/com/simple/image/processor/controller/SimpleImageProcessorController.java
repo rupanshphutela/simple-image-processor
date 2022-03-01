@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.*;
 
 import javax.imageio.ImageIO;
 
+import org.apache.commons.io.FilenameUtils;
 import org.springdoc.core.SpringDocUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -55,6 +56,9 @@ public class SimpleImageProcessorController {
     
     @Value("${image.height}")
     private int imageHeight;
+    
+    @Value("${image.max_resize}")
+    private int imageMaxResize;
     
     static {
         SpringDocUtils.getConfig().addRestControllers(SimpleImageProcessorController.class);
@@ -163,18 +167,65 @@ public class SimpleImageProcessorController {
 	        	headers.set("Error Message",  message);
 	        	throw new Exception();
 	        	}
-        try {
-    		int userInpWidth = Integer.parseInt(imgwidth);
-    		int userInpHeight = Integer.parseInt(imgheight);
-    		if(userInpWidth>imageWidth || userInpHeight>imageHeight) {
+        
+        if(((!(imgwidth==null)&&!imgwidth.isEmpty()))&&(!(imgheight==null)||!(imgheight.isEmpty()))) {
+        	try {
+        		int userInpWidth = Integer.parseInt(imgwidth);
+        		int userInpHeight = Integer.parseInt(imgheight);
+        		if(userInpWidth>imageWidth || userInpHeight>imageHeight) {
+            		throw new Exception();
+            		}
+        	}
+        	catch(Exception e) {
+        		message = "Passed height/width resize parameter is too large. Please pass integers <=5000 for each";
+        		headers.set("Error Message",  message);
         		throw new Exception();
-        		}
-    	}
-    	catch(Exception e) {
-    		message = "Passed height/width resize parameter is too large. Please pass integers <=5000 for each";
-    		headers.set("Error Message",  message);
-    		throw new Exception();
-    	}
+        	}
+        }
+        
+        if(((!(imgwidth==null)&&!imgwidth.isEmpty()))&&(!(imgheight==null)||!(imgheight.isEmpty()))) {
+        	try {
+        		int userInpWidth = Integer.parseInt(imgwidth);
+        		int userInpHeight = Integer.parseInt(imgheight);
+        		if(userInpWidth<0 || userInpHeight<0) {
+            		throw new Exception();
+            		}
+        	}
+        	catch(Exception e) {
+        		message = "One or both of Passed height/width resize parameters are < 0 . Please pass integers between 1 to 5000 for each";
+        		headers.set("Error Message",  message);
+        		throw new Exception();
+        	}
+        }
+        
+        if(!(resize==null)&&!resize.isEmpty()) {
+        	try {
+        		int userInpResize = Integer.parseInt(resize);
+        		if(userInpResize>imageMaxResize) {
+            		throw new Exception();
+            		}
+        	}
+        	catch(Exception e) {
+        		message = "Passed resize by aspect ratio parameter is too large. Please pass integers <=250%";
+        		headers.set("Error Message",  message);
+        		throw new Exception();
+        	}
+        }
+        
+        if(!(resize==null)&&!resize.isEmpty()) {
+        	try {
+        		int userInpResize = Integer.parseInt(resize);
+        		if(userInpResize<0) {
+            		throw new Exception();
+            		}
+        	}
+        	catch(Exception e) {
+        		message = "Passed resize by aspect ratio parameter <=0. Please pass integers between 1 and 250%";
+        		headers.set("Error Message",  message);
+        		throw new Exception();
+        	}
+        }
+        
         }
         catch(Exception e) {
             ResponseEntity<byte[]> responseEntity = new ResponseEntity<>(null, headers, HttpStatus.PRECONDITION_FAILED);
@@ -264,9 +315,20 @@ public class SimpleImageProcessorController {
         	
         	//Building Success Response
             headers.setCacheControl(CacheControl.noCache().getHeaderValue());
-            headers.setContentType(MediaType.IMAGE_JPEG);
+            String extension = FilenameUtils.getExtension(imageFile.getOriginalFilename());
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-    		ImageIO.write(imageRotLeft , "jpg", byteArrayOutputStream);
+            if(extension.equals("jpeg")) {
+            	headers.setContentType(MediaType.IMAGE_JPEG);
+        		ImageIO.write(imageRotLeft , "jpg", byteArrayOutputStream);
+            }
+            else if(extension.equals("gif")) {
+            	headers.setContentType(MediaType.IMAGE_GIF);
+        		ImageIO.write(imageRotLeft , "gif", byteArrayOutputStream);
+            }
+            else if(extension.equals("png")) {
+            	headers.setContentType(MediaType.IMAGE_PNG);
+        		ImageIO.write(imageRotLeft , "png", byteArrayOutputStream);
+            }
     		System.out.println("File written to outputstream");
             message = "Transformed the file successfully - " + imageFile.getOriginalFilename();
             headers.set("Success Message",  message);

@@ -11,7 +11,7 @@
     <p class="text-success" th:if="${successMessage}" th:text="${successMessage}"></p>
     <form method="POST" enctype="multipart/form-data" action="/uploadImage" autocomplete="off">
   	<div>
-    	<input type="file" id="image" name="image" accept=".jpg, .jpeg" multiple value="Choose Image" onchange=displayDiv() required/>
+    	<input type="file" id="image" name="image" accept=".jpg, .jpeg, .png, .gif" value="Choose Image" onchange=displayDiv() required/>
   	</div>
   	<div id="imageTransformations" style="display:none">
 	<p><strong>Image Preview</strong></p>

@@ -35,7 +35,6 @@ public class MultipartToBufferedImageImpl implements MultipartToBufferedImage{
 				if(image.getWidth()<=imageWidth||image.getHeight()<=imageHeight)
 					return image;
 				else
-					System.out.println("Fata here");
 					throw new Exception();
 			}
 			catch(Exception e){
