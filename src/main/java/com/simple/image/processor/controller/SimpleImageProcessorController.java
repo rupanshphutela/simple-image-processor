@@ -11,6 +11,7 @@ import javax.imageio.ImageIO;
 
 import org.springdoc.core.SpringDocUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
@@ -46,6 +47,15 @@ public class SimpleImageProcessorController {
     @Autowired
     private MultipartToBufferedImage MultipartToBufferedImage;
     
+    @Value("${image.size}")
+    private int imageSize;
+    
+    @Value("${image.width}")
+    private int imageWidth;
+    
+    @Value("${image.height}")
+    private int imageHeight;
+    
     static {
         SpringDocUtils.getConfig().addRestControllers(SimpleImageProcessorController.class);
     }
@@ -53,7 +63,7 @@ public class SimpleImageProcessorController {
     @Bean
     public MultipartResolver multipartResolver() {
         org.springframework.web.multipart.commons.CommonsMultipartResolver multipartResolver = new org.springframework.web.multipart.commons.CommonsMultipartResolver();
-        //multipartResolver.setMaxUploadSize(1000000);
+        multipartResolver.setMaxUploadSize(1024*1024*10); //10MB
         return multipartResolver;
     }
     
@@ -93,53 +103,80 @@ public class SimpleImageProcessorController {
         System.out.println("RotateRight=====>  " + rotateRight);
         String rotateLeft = operations.getRotateLeft();
         System.out.println("RotateLeft=====>  " + rotateLeft);
+        
+        //Pre-validation response header
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
 
         //Pre-Transformation Validations
         try {
         	if(imageFile.isEmpty()) {
-        	message = "Please choose file to upload.";
-        	throw new Exception();
-        	}
+        		message = "Please choose file to upload.";
+        		headers.set("Error Message",  message);
+        		throw new Exception();
+        		}
+        	
+        	if (imageFile.getSize()>imageSize) {
+        		message = "File too large. Please select file size less than 10MB";
+        		headers.set("Error Message",  message);
+        		throw new Exception();
+        	}        	
         
         if(((!(thumbnail==null)&&!thumbnail.isEmpty()))&&(((!(resize==null)&&!resize.isEmpty())))) {
-        	message = "Both thumbnail/resize with aspect ratio operations are not permitted at same time. ";
-        	throw new Exception();
-        	}
+	        	message = "Both thumbnail/resize with aspect ratio operations are not permitted at same time. ";
+	        	headers.set("Error Message",  message);
+	        	throw new Exception();
+	        	}
         
         if(((!(rotateRight==null)&&!rotateRight.isEmpty()))&&(((!(rotateLeft==null)&&!rotateLeft.isEmpty())))) {
-        	message = "Both Rotate Left/Right operations are not permitted at same time. ";
-        	throw new Exception();
-    		}
+	        	message = "Both Rotate Left/Right operations are not permitted at same time. ";
+	        	headers.set("Error Message",  message);
+	        	throw new Exception();
+	    		}
         
         if(((!(imgwidth==null)&&!imgwidth.isEmpty()))&&((imgheight==null)||imgheight.isEmpty())) {
-        	message = "Image Height null/empty/non-numerical. Please enter both height and width. ";
-        	throw new Exception();
-    		}
+	        	message = "Image Height null/empty/non-numerical. Please enter both height and width. ";
+	        	headers.set("Error Message",  message);
+	        	throw new Exception();
+	    		}
         
         if(((!(imgheight==null)&&!imgheight.isEmpty()))&&((imgwidth==null)||imgwidth.isEmpty())) {
-        	message = "Image Width null/empty/non-numerical. Please enter both height and width. ";
-        	throw new Exception();
-    		}
+	        	message = "Image Width null/empty/non-numerical. Please enter both height and width. ";
+	        	headers.set("Error Message",  message);
+	        	throw new Exception();
+	    		}
         
         if(((!(thumbnail==null)&&!thumbnail.isEmpty()))&&((((!(imgwidth==null)&&!imgwidth.isEmpty()))||(!(imgheight==null)&&!imgheight.isEmpty())))) {
-        	message = "Both thumbnail/resize with height/width operations are not permitted at same time. ";
-        	throw new Exception();
-        	}
+	        	message = "Both thumbnail/resize with height/width operations are not permitted at same time. ";
+	        	headers.set("Error Message",  message);
+	        	throw new Exception();
+	        	}
         
         if(((!(resize==null)&&!resize.isEmpty()))&&((((!(imgwidth==null)&&!imgwidth.isEmpty()))||(!(imgheight==null)&&!imgheight.isEmpty())))) {
-        	message = "Both resize with aspect ratio/resize with height/width operations are not permitted at same time.  ";
-        	throw new Exception();
-        	}
+	        	message = "Both resize with aspect ratio/resize with height/width operations are not permitted at same time.  ";
+	        	headers.set("Error Message",  message);
+	        	throw new Exception();
+	        	}
 
         if(!(imageFile.isEmpty()) && ((flipHorizontal==null)||flipHorizontal.isBlank()) && ((flipVertical==null)||flipVertical.isBlank()) && ((rotateDegrees==null)||rotateDegrees.isBlank()) && ((resize==null)||resize.isBlank()) && ((imgwidth==null)||imgwidth.isBlank()) && ((imgheight==null)||imgheight.isBlank()) && ((grayScale==null)||grayScale.isBlank()) && ((thumbnail==null)||thumbnail.isBlank()) && ((rotateRight==null)||rotateRight.isBlank()) && ((rotateLeft==null)||rotateLeft.isBlank())) {
-        	message = "Image selected but no changes are made . Can't proceed. ";
-        	throw new Exception();
-        	}
+	        	message = "Image selected but no changes are made . Can't proceed. ";
+	        	headers.set("Error Message",  message);
+	        	throw new Exception();
+	        	}
+        try {
+    		int userInpWidth = Integer.parseInt(imgwidth);
+    		int userInpHeight = Integer.parseInt(imgheight);
+    		if(userInpWidth>imageWidth || userInpHeight>imageHeight) {
+        		throw new Exception();
+        		}
+    	}
+    	catch(Exception e) {
+    		message = "Passed height/width resize parameter is eithe too large or not a number. Please pass integers <=5000 for each";
+    		headers.set("Error Message",  message);
+    		throw new Exception();
+    	}
         }
         catch(Exception e) {
-        	HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Error Message",  message);
             ResponseEntity<byte[]> responseEntity = new ResponseEntity<>(null, headers, HttpStatus.PRECONDITION_FAILED);
             return responseEntity;
             }
@@ -226,7 +263,6 @@ public class SimpleImageProcessorController {
         	System.out.println("Updated image dimensions after rotate left :"+width+"x"+height);
         	
         	//Building Success Response
-            HttpHeaders headers = new HttpHeaders();
             headers.setCacheControl(CacheControl.noCache().getHeaderValue());
             headers.setContentType(MediaType.IMAGE_JPEG);
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -241,8 +277,8 @@ public class SimpleImageProcessorController {
         catch(Exception e) {
 			e.printStackTrace();
 			if(imageInput==null)
-				message = "File corrupt/not a .jpg image. Unable to convert MultipartFile to BufferedImage";
-			else if(imageFlipHor==null)         	
+				message = "Either File is not a JPEG image or image height/width > 5000 px. Unable to process. ";
+        	else if(imageFlipHor==null)         	
         		message = "Incorrect Data - Flip Operation accepts only \"on\", null  or \"\" as inputs";
         	else if(imageFlipVert==null) 
         		message = "Incorrect Data - Flip Operation accepts only \"on\", null  or \"\" as inputs";
@@ -260,8 +296,6 @@ public class SimpleImageProcessorController {
         		message="Incorrect Data - Rotate Left/Right Operation accepts only \"on\", null  or \"\" as inputs";
         	else if(imageRotLeft==null) 
         		message="Incorrect Data - Rotate Left/Right Operation accepts only \"on\", null  or \"\" as inputs";
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("Error Message",  message);
             ResponseEntity<byte[]> responseEntity = new ResponseEntity<>(null, headers, HttpStatus.NOT_ACCEPTABLE);
             return responseEntity;

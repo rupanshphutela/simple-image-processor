@@ -9,12 +9,18 @@ import javax.imageio.ImageIO;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.simple.image.processor.service.MultipartToBufferedImage;
 @Service
 public class MultipartToBufferedImageImpl implements MultipartToBufferedImage{
+    @Value("${image.width}")
+    private int imageWidth;
+    
+    @Value("${image.height}")
+    private int imageHeight;
 	private Logger logger = LoggerFactory.getLogger(MultipartToBufferedImageImpl.class);
 	@Override
 	public BufferedImage convert(MultipartFile imageFile) {
@@ -25,7 +31,17 @@ public class MultipartToBufferedImageImpl implements MultipartToBufferedImage{
 			tempFile = Files.createTempFile("image_upload_", ".tmp").toFile();
 			multipartFile.transferTo(tempFile);
 			image = ImageIO.read(tempFile);
-			return image;
+			try {
+				if(image.getWidth()<=imageWidth||image.getHeight()<=imageHeight)
+					return image;
+				else
+					System.out.println("Fata here");
+					throw new Exception();
+			}
+			catch(Exception e){
+	        	logger.error(e.getMessage(), e);
+				return null;
+			}
         }
         catch (Exception e){
         	logger.error(e.getMessage(), e);
