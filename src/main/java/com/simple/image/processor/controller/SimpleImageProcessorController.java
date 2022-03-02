@@ -77,15 +77,13 @@ public class SimpleImageProcessorController {
     }
 
 	@PostMapping(value ="/uploadImage", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-//    public ResponseEntity<byte[]> uploadImage(@RequestParam(value="image",required=true) MultipartFile imageFile, fetchAttributes operations, RedirectAttributes attributes) {
 	@Operation(summary = "Image Transformation Application", responses = {
-		      @ApiResponse(description = "Successful Operation", responseCode = "200", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))),
+		      @ApiResponse(responseCode = "200", description = "Successful Operation", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))),
 		      @ApiResponse(responseCode = "406", description = "Values not Acceptable", content = @Content),
 		      @ApiResponse(responseCode = "412", description = "Pre-condition Failure", content = @Content(schema = @Schema(hidden = true))) })
     public ResponseEntity<byte[]> uploadImage(@RequestParam(value="image",required=true) MultipartFile imageFile, fetchAttributes operations) {
     
-      //Variables from HTML Form
-//        MultipartFile imageFile = operations.getImage();        
+      //Variables from HTML Form/DTO
     	System.out.println("Form to Controller inputs via DTO");
         String flipHorizontal = operations.getFlipHorizontal();
         System.out.println("FlipHorizontal=====>  " + flipHorizontal);
@@ -231,14 +229,7 @@ public class SimpleImageProcessorController {
             ResponseEntity<byte[]> responseEntity = new ResponseEntity<>(null, headers, HttpStatus.PRECONDITION_FAILED);
             return responseEntity;
             }
-    /*    
-        //Base64 to Buffered Image
-        System.out.println("Converting to image from base64");
-        BufferedImage image = base64ToImageService.transform(base64Image);
-        int width          = image.getWidth();
-		int height         = image.getHeight();
-        System.out.println("Updated image dimensions after read :"+width+"x"+height);
-   */     
+  
         int width          = 0;
         int height         = 0;
 		//Operation output variables
@@ -317,7 +308,7 @@ public class SimpleImageProcessorController {
             headers.setCacheControl(CacheControl.noCache().getHeaderValue());
             String extension = FilenameUtils.getExtension(imageFile.getOriginalFilename());
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            if(extension.equals("jpeg")) {
+            if(extension.equals("jpeg")||extension.equals("jpg")) {
             	headers.setContentType(MediaType.IMAGE_JPEG);
         		ImageIO.write(imageRotLeft , "jpg", byteArrayOutputStream);
             }
@@ -364,8 +355,25 @@ public class SimpleImageProcessorController {
             }
     }
 }
+/*
+ * 
+ backup - 1 March 2022
+ 
+ //    public ResponseEntity<byte[]> uploadImage(@RequestParam(value="image",required=true) MultipartFile imageFile, fetchAttributes operations, RedirectAttributes attributes) {
 
-/*backup
+ //        MultipartFile imageFile = operations.getImage();        
+
+     /*    
+        //Base64 to Buffered Image
+        System.out.println("Converting to image from base64");
+        BufferedImage image = base64ToImageService.transform(base64Image);
+        int width          = image.getWidth();
+		int height         = image.getHeight();
+        System.out.println("Updated image dimensions after read :"+width+"x"+height);
+     
+
+
+backup - old
  * 
  * Original imports and references
  * 

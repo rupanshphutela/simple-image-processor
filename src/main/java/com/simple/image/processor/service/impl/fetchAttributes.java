@@ -4,13 +4,12 @@ import java.io.Serializable;
 
 import org.springframework.web.multipart.MultipartFile;
 
-//DTO Object
+//DTO Pattern
 public class fetchAttributes implements Serializable{
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 8686834337329208533L;
-//    public MultipartFile image;
     public String flipHorizontal;
     public String flipVertical;
     public String rotateDegrees;
@@ -21,14 +20,7 @@ public class fetchAttributes implements Serializable{
     public String thumbnail;
     public String rotateRight;
     public String rotateLeft;
-//    public String base64Image;
-	
-//    public MultipartFile getImage() {
-//		return image;
-//	}
-//	public void setImage(MultipartFile image) {
-//		this.image = image;
-//	}
+
 	public String getFlipHorizontal() {
 		return flipHorizontal;
 	}
@@ -90,17 +82,32 @@ public class fetchAttributes implements Serializable{
 		this.rotateLeft = rotateLeft;
 	}
 	
-/*	public String getBase64Image() {
-		return base64Image;
-	}
-	public void setBase64Image(String base64Image) {
-		this.base64Image = base64Image;
-	}
-*/
+
     @Override
     public String toString() {
         return "fetchAttributes [flipHorizontal=" + flipHorizontal + ", flipVertical=" + flipVertical + ", rotateDegrees=" + rotateDegrees + ", grayScale=" + grayScale + ", resize=" + resize + ", thumbnail=" + thumbnail + ", rotateRight=" + rotateRight + ", rotateLeft=" + rotateLeft + "]";
-//        return "fetchAttributes [flipHorizontal=" + flipHorizontal + ", flipVertical=" + flipVertical + ", rotateDegrees=" + rotateDegrees + ", grayScale=" + grayScale + ", resize=" + resize + ", thumbnail=" + thumbnail + ", rotateRight=" + rotateRight + ", rotateLeft=" + rotateLeft + ", base64Image=" + base64Image + "]";
     }
 }
+/*
+public MultipartFile image;
 
+public String base64Image;
+
+public MultipartFile getImage() {
+	return image;
+}
+public void setImage(MultipartFile image) {
+	this.image = image;
+}
+
+	public String getBase64Image() {
+return base64Image;
+}
+public void setBase64Image(String base64Image) {
+this.base64Image = base64Image;
+}
+
+
+return "fetchAttributes [flipHorizontal=" + flipHorizontal + ", flipVertical=" + flipVertical + ", rotateDegrees=" + rotateDegrees + ", grayScale=" + grayScale + ", resize=" + resize + ", thumbnail=" + thumbnail + ", rotateRight=" + rotateRight + ", rotateLeft=" + rotateLeft + ", base64Image=" + base64Image + "]";
+
+*/
