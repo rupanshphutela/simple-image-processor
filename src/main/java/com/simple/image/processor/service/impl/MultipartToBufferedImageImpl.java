@@ -31,6 +31,7 @@ public class MultipartToBufferedImageImpl implements MultipartToBufferedImage{
 			tempFile = Files.createTempFile("image_upload_", ".tmp").toFile();
 			multipartFile.transferTo(tempFile);
 			image = ImageIO.read(tempFile);
+			tempFile.deleteOnExit();
 			try {
 				if(image.getWidth()<=imageWidth||image.getHeight()<=imageHeight)
 					return image;
